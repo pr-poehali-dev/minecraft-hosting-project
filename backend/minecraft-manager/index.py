@@ -41,7 +41,7 @@ def get_container_stats(container_name: str) -> Optional[Dict[str, Any]]:
         }
     return None
 
-def start_minecraft_server(server_id: int, version: str, port: int, ram: str, max_players: int) -> tuple[bool, str]:
+def start_minecraft_server(server_id: int, version: str, port: int, ram: str, max_players: int, server_type: str = 'VANILLA') -> tuple[bool, str]:
     """Start Minecraft server in Docker container"""
     container_name = get_container_name(server_id)
     data_path = os.environ.get('MINECRAFT_DATA_PATH', '/tmp/minecraft-servers')
@@ -63,7 +63,7 @@ def start_minecraft_server(server_id: int, version: str, port: int, ram: str, ma
         '-e', f'VERSION={version}',
         '-e', f'MEMORY={ram_value}',
         '-e', f'MAX_PLAYERS={max_players}',
-        '-e', 'TYPE=VANILLA',
+        '-e', f'TYPE={server_type}',
         '--restart', 'unless-stopped',
         'itzg/minecraft-server:latest'
     ]
@@ -189,7 +189,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             cur.execute('''
-                SELECT id, name, status, players, max_players, ram, version, ip, port 
+                SELECT id, name, status, players, max_players, ram, version, ip, port, server_type 
                 FROM servers 
                 ORDER BY id
             ''')
@@ -217,7 +217,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'ram': row[5],
                     'version': row[6],
                     'ip': row[7],
-                    'port': row[8] if len(row) > 8 else 25565
+                    'port': row[8] if len(row) > 8 else 25565,
+                    'serverType': row[9] if len(row) > 9 else 'VANILLA'
                 })
             
             return {
@@ -237,7 +238,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if action == 'start':
                 cur.execute('''
-                    SELECT version, port, ram, max_players 
+                    SELECT version, port, ram, max_players, server_type 
                     FROM servers WHERE id = %s
                 ''', (server_id,))
                 
@@ -253,8 +254,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'isBase64Encoded': False
                     }
                 
-                version, port, ram, max_players = row
-                success, message = start_minecraft_server(server_id, version, port, ram, max_players)
+                version, port, ram, max_players, server_type = row
+                success, message = start_minecraft_server(server_id, version, port, ram, max_players, server_type or 'VANILLA')
                 
                 if success:
                     cur.execute(

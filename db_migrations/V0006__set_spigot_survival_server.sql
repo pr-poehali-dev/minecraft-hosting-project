@@ -1,0 +1,1 @@
+UPDATE servers SET server_type = 'SPIGOT', version = '1.19.4' WHERE name = 'Survival Server';
