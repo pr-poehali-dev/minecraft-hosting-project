@@ -1,0 +1,45 @@
+{
+  "tests": [
+    {
+      "name": "Get console logs",
+      "method": "GET",
+      "path": "/?serverId=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "serverId": 1,
+        "logs": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Execute op command",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "serverId": 1,
+        "command": "op xDevrazLoLDx"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "command": "op xDevrazLoLDx"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Execute list command",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "serverId": 1,
+        "command": "list"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "response": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,57 +1,105 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import funcUrls from '../../../backend/func2url.json';
 
 type ViewType = 'home' | 'dashboard' | 'faq' | 'docs' | 'pricing' | 'support';
 
+interface Server {
+  id: number;
+  name: string;
+  status: string;
+  players: number;
+  maxPlayers: number;
+  ram: string;
+  version: string;
+  ip?: string;
+}
+
 export default function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void }) {
-  const [servers, setServers] = useState([
-    { id: 1, name: 'Survival Server', status: 'online', players: 8, maxPlayers: 500, ram: '4 GB', version: '1.19.4' },
-    { id: 2, name: 'Creative World', status: 'offline', players: 0, maxPlayers: 10, ram: '2 GB', version: '1.20.1' },
-    { id: 3, name: 'Skyblock', status: 'online', players: 15, maxPlayers: 30, ram: '4 GB', version: '1.19.4' },
-  ]);
+  const [servers, setServers] = useState<Server[]>([]);
   const [selectedServer, setSelectedServer] = useState<number | null>(1);
   const [consoleInput, setConsoleInput] = useState('');
-  const [consoleOutput, setConsoleOutput] = useState<string[]>([
-    '[Server] Server started successfully',
-    '[Server] Listening on port 25565',
-    '[12:34:56] > op xDevrazLoLDx',
-    '[12:34:56] Made xDevrazLoLDx a server operator',
-    '[12:35:12] > online-mode false',
-    '[12:35:12] Server online-mode set to false',
-    '[12:35:12] Server will accept non-premium players',
-  ]);
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const toggleServer = (id: number) => {
-    setServers(servers.map(server => 
-      server.id === id 
-        ? { ...server, status: server.status === 'online' ? 'offline' : 'online', players: server.status === 'online' ? 0 : server.players }
-        : server
-    ));
+  useEffect(() => {
+    loadServers();
+    loadConsoleLogs(1);
+  }, []);
+
+  const loadServers = async () => {
+    try {
+      const response = await fetch(funcUrls.servers);
+      const data = await response.json();
+      if (data.servers) {
+        setServers(data.servers);
+      }
+    } catch (error) {
+      console.error('Failed to load servers:', error);
+    }
   };
 
-  const executeCommand = (serverId: number, command: string) => {
+  const loadConsoleLogs = async (serverId: number) => {
+    try {
+      const response = await fetch(`${funcUrls.console}?serverId=${serverId}`);
+      const data = await response.json();
+      if (data.logs) {
+        setConsoleOutput(data.logs);
+      }
+    } catch (error) {
+      console.error('Failed to load console logs:', error);
+    }
+  };
+
+  const toggleServer = async (id: number) => {
+    setLoading(true);
+    try {
+      const response = await fetch(funcUrls.servers, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', serverId: id })
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setServers(servers.map(server => 
+          server.id === id 
+            ? { ...server, status: data.newStatus, players: data.newStatus === 'offline' ? 0 : server.players }
+            : server
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to toggle server:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executeCommand = async (serverId: number, command: string) => {
     if (!command.trim()) return;
     
-    const timestamp = new Date().toLocaleTimeString('ru-RU');
-    setConsoleOutput(prev => [...prev, `[${timestamp}] > ${command}`]);
-    
-    if (command.startsWith('op ')) {
-      const username = command.substring(3).trim();
-      setConsoleOutput(prev => [...prev, `[${timestamp}] Made ${username} a server operator`]);
-    } else if (command.startsWith('deop ')) {
-      const username = command.substring(5).trim();
-      setConsoleOutput(prev => [...prev, `[${timestamp}] Made ${username} no longer a server operator`]);
-    } else if (command === 'list') {
-      setConsoleOutput(prev => [...prev, `[${timestamp}] There are 8/30 players online`]);
-    } else {
-      setConsoleOutput(prev => [...prev, `[${timestamp}] Command executed: ${command}`]);
+    setLoading(true);
+    try {
+      const response = await fetch(funcUrls.console, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serverId, command })
+      });
+      const data = await response.json();
+      
+      if (data.success && data.logs) {
+        setConsoleOutput(prev => [...prev, ...data.logs]);
+      }
+    } catch (error) {
+      console.error('Failed to execute command:', error);
+    } finally {
+      setLoading(false);
+      setConsoleInput('');
     }
-    
-    setConsoleInput('');
   };
 
   return (
@@ -164,7 +212,7 @@ export default function DashboardPage({ onNavigate }: { onNavigate: (view: ViewT
                           </div>
                           <div className="flex items-center gap-2">
                             <Icon name="Globe" size={14} />
-                            <span className="font-mono">play.devraz.ru:{25565 + server.id - 1}</span>
+                            <span className="font-mono">{server.ip || `play.devraz.ru:${25565 + server.id - 1}`}</span>
                           </div>
                         </div>
                       </div>
@@ -174,6 +222,7 @@ export default function DashboardPage({ onNavigate }: { onNavigate: (view: ViewT
                         onClick={() => toggleServer(server.id)}
                         variant={server.status === 'online' ? 'destructive' : 'default'}
                         className={server.status === 'offline' ? 'bg-secondary hover:bg-secondary/90 text-background' : ''}
+                        disabled={loading}
                       >
                         <Icon name={server.status === 'online' ? 'Square' : 'Play'} size={18} className="mr-2" />
                         {server.status === 'online' ? 'Остановить' : 'Запустить'}
@@ -224,6 +273,7 @@ export default function DashboardPage({ onNavigate }: { onNavigate: (view: ViewT
                       <Button 
                         onClick={() => executeCommand(server.id, consoleInput)}
                         className="bg-primary hover:bg-primary/90"
+                        disabled={loading}
                       >
                         <Icon name="Send" size={18} className="mr-2" />
                         Выполнить
