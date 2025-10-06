@@ -1,0 +1,39 @@
+{
+  "tests": [
+    {
+      "name": "Get all servers with real status",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "servers": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get server stats",
+      "method": "GET",
+      "path": "/?serverId=1&action=stats",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "serverId": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Start server via Docker",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "start",
+        "serverId": 1
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean",
+        "serverId": 1
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "List files",
+      "method": "GET",
+      "path": "/?serverId=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "serverId": 1,
+        "files": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Read file",
+      "method": "GET",
+      "path": "/?serverId=1&action=read&file=server.properties",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

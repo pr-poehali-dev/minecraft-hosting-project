@@ -6,6 +6,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import ServerMonitoring from '@/components/ServerMonitoring';
+import FileManager from '@/components/FileManager';
 
 type ViewType = 'home' | 'dashboard' | 'faq' | 'docs' | 'pricing' | 'support';
 
@@ -452,68 +454,75 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
               </Card>
 
               {selectedServer === server.id && (
-                <Card className="border-primary/50 animate-in slide-in-from-top-4">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2">
-                      <Icon name="Terminal" size={20} className="text-primary" />
-                      Консоль сервера
-                    </CardTitle>
-                    <CardDescription>Управление через команды</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted/50 rounded-lg p-4 mb-4 h-64 overflow-y-auto font-mono text-sm">
-                      {consoleOutput.map((line, idx) => (
-                        <div key={idx} className="text-muted-foreground mb-1">{line}</div>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input 
-                        placeholder="Введите команду (например: op xDevrazLoLDx)"
-                        value={consoleInput}
-                        onChange={(e) => setConsoleInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            executeCommand(server.id, consoleInput);
-                          }
-                        }}
-                        className="font-mono"
-                      />
-                      <Button 
-                        onClick={() => executeCommand(server.id, consoleInput)}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        <Icon name="Send" size={18} className="mr-2" />
-                        Выполнить
-                      </Button>
-                    </div>
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setConsoleInput('op xDevrazLoLDx');
-                          executeCommand(server.id, 'op xDevrazLoLDx');
-                        }}
-                      >
-                        op xDevrazLoLDx
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setConsoleInput('list')}
-                      >
-                        list
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setConsoleInput('save-all')}
-                      >
-                        save-all
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="border-primary/50 animate-in slide-in-from-top-4">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="flex items-center gap-2">
+                        <Icon name="Terminal" size={20} className="text-primary" />
+                        Консоль сервера
+                      </CardTitle>
+                      <CardDescription>Управление через команды</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-muted/50 rounded-lg p-4 mb-4 h-64 overflow-y-auto font-mono text-sm">
+                        {consoleOutput.map((line, idx) => (
+                          <div key={idx} className="text-muted-foreground mb-1">{line}</div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="Введите команду (например: op xDevrazLoLDx)"
+                          value={consoleInput}
+                          onChange={(e) => setConsoleInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              executeCommand(server.id, consoleInput);
+                            }
+                          }}
+                          className="font-mono"
+                        />
+                        <Button 
+                          onClick={() => executeCommand(server.id, consoleInput)}
+                          className="bg-primary hover:bg-primary/90"
+                        >
+                          <Icon name="Send" size={18} className="mr-2" />
+                          Выполнить
+                        </Button>
+                      </div>
+                      <div className="mt-3 flex gap-2 flex-wrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setConsoleInput('op xDevrazLoLDx');
+                            executeCommand(server.id, 'op xDevrazLoLDx');
+                          }}
+                        >
+                          op xDevrazLoLDx
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setConsoleInput('list')}
+                        >
+                          list
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setConsoleInput('save-all')}
+                        >
+                          save-all
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="space-y-4">
+                    <ServerMonitoring serverId={server.id} isOnline={server.status === 'online'} />
+                    <FileManager serverId={server.id} />
+                  </div>
+                </div>
               )}
             </div>
           ))}
