@@ -270,11 +270,13 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
     { id: 2, name: 'Creative World', status: 'offline', players: 0, maxPlayers: 10, ram: '2 GB', version: '1.20.1' },
     { id: 3, name: 'Skyblock', status: 'online', players: 15, maxPlayers: 30, ram: '4 GB', version: '1.19.4' },
   ]);
-  const [selectedServer, setSelectedServer] = useState<number | null>(null);
+  const [selectedServer, setSelectedServer] = useState<number | null>(1);
   const [consoleInput, setConsoleInput] = useState('');
   const [consoleOutput, setConsoleOutput] = useState<string[]>([
     '[Server] Server started successfully',
     '[Server] Listening on port 25565',
+    '[12:34:56] > op xDevrazLoLDx',
+    '[12:34:56] Made xDevrazLoLDx a server operator',
   ]);
 
   const toggleServer = (id: number) => {
