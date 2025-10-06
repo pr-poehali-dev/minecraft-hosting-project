@@ -266,7 +266,7 @@ function HomePage({ onNavigate }: { onNavigate: (view: ViewType) => void }) {
 
 function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void }) {
   const [servers, setServers] = useState([
-    { id: 1, name: 'Survival Server', status: 'online', players: 8, maxPlayers: 30, ram: '4 GB', version: '1.20.4' },
+    { id: 1, name: 'Survival Server', status: 'online', players: 8, maxPlayers: 30, ram: '4 GB', version: '1.19.4' },
     { id: 2, name: 'Creative World', status: 'offline', players: 0, maxPlayers: 10, ram: '2 GB', version: '1.20.1' },
     { id: 3, name: 'Skyblock', status: 'online', players: 15, maxPlayers: 30, ram: '4 GB', version: '1.19.4' },
   ]);
