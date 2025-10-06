@@ -416,6 +416,10 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
                             <Icon name="Package" size={14} />
                             <span>v{server.version}</span>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Icon name="Globe" size={14} />
+                            <span className="font-mono">play.devraz.ru:{25565 + server.id - 1}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
