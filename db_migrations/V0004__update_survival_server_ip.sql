@@ -1,0 +1,1 @@
+UPDATE servers SET ip = 'mc.funrune.ru' WHERE name = 'Survival Server';
