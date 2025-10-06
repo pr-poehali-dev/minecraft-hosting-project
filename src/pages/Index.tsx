@@ -270,6 +270,12 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
     { id: 2, name: 'Creative World', status: 'offline', players: 0, maxPlayers: 10, ram: '2 GB', version: '1.20.1' },
     { id: 3, name: 'Skyblock', status: 'online', players: 15, maxPlayers: 30, ram: '4 GB', version: '1.19.4' },
   ]);
+  const [selectedServer, setSelectedServer] = useState<number | null>(null);
+  const [consoleInput, setConsoleInput] = useState('');
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([
+    '[Server] Server started successfully',
+    '[Server] Listening on port 25565',
+  ]);
 
   const toggleServer = (id: number) => {
     setServers(servers.map(server => 
@@ -277,6 +283,27 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
         ? { ...server, status: server.status === 'online' ? 'offline' : 'online', players: server.status === 'online' ? 0 : server.players }
         : server
     ));
+  };
+
+  const executeCommand = (serverId: number, command: string) => {
+    if (!command.trim()) return;
+    
+    const timestamp = new Date().toLocaleTimeString('ru-RU');
+    setConsoleOutput(prev => [...prev, `[${timestamp}] > ${command}`]);
+    
+    if (command.startsWith('op ')) {
+      const username = command.substring(3).trim();
+      setConsoleOutput(prev => [...prev, `[${timestamp}] Made ${username} a server operator`]);
+    } else if (command.startsWith('deop ')) {
+      const username = command.substring(5).trim();
+      setConsoleOutput(prev => [...prev, `[${timestamp}] Made ${username} no longer a server operator`]);
+    } else if (command === 'list') {
+      setConsoleOutput(prev => [...prev, `[${timestamp}] There are 8/30 players online`]);
+    } else {
+      setConsoleOutput(prev => [...prev, `[${timestamp}] Command executed: ${command}`]);
+    }
+    
+    setConsoleInput('');
   };
 
   return (
@@ -358,56 +385,128 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
           </div>
 
           {servers.map(server => (
-            <Card key={server.id} className="hover-glow border-border/50">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6 flex-1">
-                    <div className="w-16 h-16 bg-gradient-to-br from-secondary/20 to-primary/20 rounded-lg flex items-center justify-center text-3xl">
-                      ⛏️
+            <div key={server.id} className="space-y-4">
+              <Card className="hover-glow border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className="w-16 h-16 bg-gradient-to-br from-secondary/20 to-primary/20 rounded-lg flex items-center justify-center text-3xl">
+                        ⛏️
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold">{server.name}</h3>
+                          <Badge variant={server.status === 'online' ? 'default' : 'secondary'} 
+                                 className={server.status === 'online' ? 'bg-secondary text-background' : ''}>
+                            {server.status === 'online' ? '🟢 Online' : '⚫ Offline'}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Icon name="Users" size={14} />
+                            <span>{server.players}/{server.maxPlayers} игроков</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Icon name="Cpu" size={14} />
+                            <span>{server.ram} RAM</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Icon name="Package" size={14} />
+                            <span>v{server.version}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold">{server.name}</h3>
-                        <Badge variant={server.status === 'online' ? 'default' : 'secondary'} 
-                               className={server.status === 'online' ? 'bg-secondary text-background' : ''}>
-                          {server.status === 'online' ? '🟢 Online' : '⚫ Offline'}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Icon name="Users" size={14} />
-                          <span>{server.players}/{server.maxPlayers} игроков</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="Cpu" size={14} />
-                          <span>{server.ram} RAM</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Icon name="Package" size={14} />
-                          <span>v{server.version}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        onClick={() => toggleServer(server.id)}
+                        variant={server.status === 'online' ? 'destructive' : 'default'}
+                        className={server.status === 'offline' ? 'bg-secondary hover:bg-secondary/90 text-background' : ''}
+                      >
+                        <Icon name={server.status === 'online' ? 'Square' : 'Play'} size={18} className="mr-2" />
+                        {server.status === 'online' ? 'Остановить' : 'Запустить'}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => setSelectedServer(selectedServer === server.id ? null : server.id)}
+                        className={selectedServer === server.id ? 'bg-primary/10 border-primary' : ''}
+                      >
+                        <Icon name="Terminal" size={18} />
+                      </Button>
+                      <Button variant="outline" size="icon">
+                        <Icon name="Settings" size={18} />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Button 
-                      onClick={() => toggleServer(server.id)}
-                      variant={server.status === 'online' ? 'destructive' : 'default'}
-                      className={server.status === 'offline' ? 'bg-secondary hover:bg-secondary/90 text-background' : ''}
-                    >
-                      <Icon name={server.status === 'online' ? 'Square' : 'Play'} size={18} className="mr-2" />
-                      {server.status === 'online' ? 'Остановить' : 'Запустить'}
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <Icon name="Settings" size={18} />
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <Icon name="MoreVertical" size={18} />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {selectedServer === server.id && (
+                <Card className="border-primary/50 animate-in slide-in-from-top-4">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon name="Terminal" size={20} className="text-primary" />
+                      Консоль сервера
+                    </CardTitle>
+                    <CardDescription>Управление через команды</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted/50 rounded-lg p-4 mb-4 h-64 overflow-y-auto font-mono text-sm">
+                      {consoleOutput.map((line, idx) => (
+                        <div key={idx} className="text-muted-foreground mb-1">{line}</div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Введите команду (например: op xDevrazLoLDx)"
+                        value={consoleInput}
+                        onChange={(e) => setConsoleInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            executeCommand(server.id, consoleInput);
+                          }
+                        }}
+                        className="font-mono"
+                      />
+                      <Button 
+                        onClick={() => executeCommand(server.id, consoleInput)}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        <Icon name="Send" size={18} className="mr-2" />
+                        Выполнить
+                      </Button>
+                    </div>
+                    <div className="mt-3 flex gap-2 flex-wrap">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setConsoleInput('op xDevrazLoLDx');
+                          executeCommand(server.id, 'op xDevrazLoLDx');
+                        }}
+                      >
+                        op xDevrazLoLDx
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setConsoleInput('list')}
+                      >
+                        list
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setConsoleInput('save-all')}
+                      >
+                        save-all
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           ))}
         </div>
       </div>
