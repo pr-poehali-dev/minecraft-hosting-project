@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 
 export default function Index() {
-  const [currentView, setCurrentView] = useState<'home' | 'dashboard'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard'>('dashboard');
 
   return (
     <div className="min-h-screen">
