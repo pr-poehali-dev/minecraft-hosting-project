@@ -277,6 +277,9 @@ function DashboardPage({ onNavigate }: { onNavigate: (view: ViewType) => void })
     '[Server] Listening on port 25565',
     '[12:34:56] > op xDevrazLoLDx',
     '[12:34:56] Made xDevrazLoLDx a server operator',
+    '[12:35:12] > online-mode false',
+    '[12:35:12] Server online-mode set to false',
+    '[12:35:12] Server will accept non-premium players',
   ]);
 
   const toggleServer = (id: number) => {
